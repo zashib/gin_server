@@ -51,9 +51,7 @@ func dataDeleteByName(name string, engine *xorm.Engine) {
 	}
 }
 
-// TODO autoupdate time func when data changed
-// TODO set unique not null(default) values for cols
-func main() {
+func createDB() *xorm.Engine {
 	engine, err := xorm.NewEngine("postgres", connectionString())
 	if err != nil {
 		fmt.Println(err)
@@ -62,6 +60,13 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	return engine
+}
+
+// TODO autoupdate time func when data changed
+// TODO set unique not null(default) values for cols
+func main() {
+	engine := createDB()
 
 	note := Note{
 		Name:    "test",
