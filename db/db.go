@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func connectionString() string {
 	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "5434", "user", "example", "pwd")
 }
 
-func (db Database) init() Database {
+func (db Database) Init() Database {
 	engine, err := xorm.NewEngine("postgres", connectionString())
 	if err != nil {
 		fmt.Println(err)
@@ -35,7 +35,7 @@ func (db Database) init() Database {
 	return db
 }
 
-func (db Database) dataInsert(note Note) {
+func (db Database) DataInsert(note Note) {
 	note.Status = time.Now()
 	_, err := db.engine.InsertOne(&note)
 	if err != nil {
