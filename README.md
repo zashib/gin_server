@@ -1,2 +1,2 @@
 # gin_server
-Markup server
+Server for notes
