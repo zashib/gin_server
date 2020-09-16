@@ -69,22 +69,22 @@ func (db Database) dataDeleteByName(name string) {
 }
 
 // TODO set unique not null(default) values for cols
-func main() {
-	db := Database{}.init()
-
-	note := Note{
-		Name:    "test",
-		Content: "some contetnt",
-	}
-
-	db.dataInsert(note)
-
-	name := "test1"
-	fmt.Println(db.dataGetByName(name))
-
-	db.dataUpdateContentByName(name, "else")
-
-	name = "test2"
-	db.dataDeleteByName(name)
-
-}
+//func main() {
+//	db := Database{}.init()
+//
+//	note := Note{
+//		Name:    "test",
+//		Content: "some contetnt",
+//	}
+//
+//	db.dataInsert(note)
+//
+//	name := "test1"
+//	fmt.Println(db.dataGetByName(name))
+//
+//	db.dataUpdateContentByName(name, "else")
+//
+//	name = "test2"
+//	db.dataDeleteByName(name)
+//
+//}
