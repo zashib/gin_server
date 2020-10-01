@@ -13,9 +13,20 @@ func (h *Handler) InsertNote(c *gin.Context) {
 	var note db.Note
 
 	c.BindJSON(&note)
-	h.Db.DataInsert(note)
+	h.Db.InsertNote(note)
 	c.JSON(200, gin.H{
 		"message": "Hello World",
-		"name":    note.Name,
+		"title":   note.Title,
+	})
+}
+
+func (h *Handler) UpdateNote(c *gin.Context) {
+	var note db.Note
+
+	c.BindJSON(&note)
+	h.Db.UpdateNote("Yes", "blabla")
+	c.JSON(200, gin.H{
+		"message": "Hello World",
+		"title":   note.Title,
 	})
 }

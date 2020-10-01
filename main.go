@@ -12,9 +12,9 @@ func main() {
 	handler := handler.Handler{Db: db}
 
 	router.POST("/note", handler.InsertNote)
-	router.GET("/note/:name")
-	router.PUT("/note/:name")
-	router.DELETE("/note/:name")
+	router.GET("/note/:id")
+	router.PUT("/note/:id")
+	router.DELETE("/note/:id")
 
 	router.Run()
 }

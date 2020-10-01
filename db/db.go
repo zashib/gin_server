@@ -9,7 +9,7 @@ import (
 
 type Note struct {
 	Id      int64
-	Name    string `xorm:"notnull unique"`
+	Title   string `xorm:"notnull unique"`
 	Content string
 	Status  time.Time
 }
@@ -35,7 +35,7 @@ func (db Database) Init() Database {
 	return db
 }
 
-func (db Database) DataInsert(note Note) {
+func (db Database) InsertNote(note Note) {
 	note.Status = time.Now()
 	_, err := db.engine.InsertOne(&note)
 	if err != nil {
@@ -43,9 +43,9 @@ func (db Database) DataInsert(note Note) {
 	}
 }
 
-func (db Database) dataGetByName(name string) interface{} {
+func (db Database) GetNoteById(title string) interface{} {
 	var note = Note{
-		Name: name,
+		Title: title,
 	}
 	_, err := db.engine.Get(&note)
 	if err != nil {
@@ -54,37 +54,38 @@ func (db Database) dataGetByName(name string) interface{} {
 	return note
 }
 
-func (db Database) dataUpdateContentByName(name string, newContent string) {
-	_, err := db.engine.In("name", name).Update(&Note{Content: newContent, Status: time.Now()})
+func (db Database) UpdateNote(title string, newContent string) {
+	_, err := db.engine.In("title", title).Update(&Note{Content: newContent, Status: time.Now()})
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func (db Database) dataDeleteByName(name string) {
-	_, err := db.engine.Delete(Note{Name: name})
+func (db Database) DeleteNote(title string) {
+	_, err := db.engine.Delete(Note{Title: title})
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
+// TODO change CRUD methods logic from by 'name' to by 'id'
 // TODO set unique not null(default) values for cols
 //func main() {
 //	db := Database{}.init()
 //
 //	note := Note{
-//		Name:    "test",
+//		Title:    "test",
 //		Content: "some contetnt",
 //	}
 //
 //	db.dataInsert(note)
 //
 //	name := "test1"
-//	fmt.Println(db.dataGetByName(name))
+//	fmt.Println(db.GetNoteById(name))
 //
-//	db.dataUpdateContentByName(name, "else")
+//	db.UpdateNote(name, "else")
 //
 //	name = "test2"
-//	db.dataDeleteByName(name)
+//	db.DeleteNote(name)
 //
 //}
