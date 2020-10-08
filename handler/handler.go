@@ -2,15 +2,11 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zashib/gin_server/db"
+	"github.com/zashib/gin_server/entities"
 )
 
-type Handler struct {
-	Db db.Database
-}
-
-func (h *Handler) InsertNote(c *gin.Context) {
-	var note db.Note
+func InsertNote(c *gin.Context) {
+	var note entities.Note
 
 	c.BindJSON(&note)
 	h.Db.InsertNote(note)
@@ -20,7 +16,7 @@ func (h *Handler) InsertNote(c *gin.Context) {
 	})
 }
 
-func (h *Handler) UpdateNote(c *gin.Context) {
+func UpdateNote(c *gin.Context) {
 	var note db.Note
 
 	c.BindJSON(&note)
