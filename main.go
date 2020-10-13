@@ -26,6 +26,19 @@ func connectionString() string {
 	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "5434", "user", "example", "pwd")
 }
 
+func createDB(connection string) *xorm.Engine {
+	db, engineErr := xorm.NewEngine("postgres", connection)
+	if engineErr != nil {
+		fmt.Println(engineErr)
+	}
+
+	syncErr := db.Sync2(new(Tasks), new(Category))
+	if syncErr != nil {
+		fmt.Println(syncErr)
+	}
+	return db
+}
+
 // TODO:
 
 // Initialize xorm db and put in context
@@ -37,16 +50,7 @@ func connectionString() string {
 // Test: get tasks -> change name -> get tasks -> поверяется что у объекта поменялся
 
 func main() {
-	engine, engineErr := xorm.NewEngine("postgres", connectionString())
-	if engineErr != nil {
-		fmt.Println(engineErr)
-	}
-
-	syncErr := engine.Sync2(new(Tasks), new(Category))
-	if syncErr != nil {
-		fmt.Println(syncErr)
-	}
-
+	db := createDB(connectionString())
 	router := gin.Default()
 
 	// Создаёт задачу
@@ -58,7 +62,7 @@ func main() {
 			fmt.Println(bindErr)
 		}
 
-		_, insertErr := engine.Insert(&task)
+		_, insertErr := db.Insert(&task)
 		if insertErr != nil {
 			fmt.Println(insertErr)
 		}
@@ -79,7 +83,7 @@ func main() {
 			Name    string
 		}
 		var tasks []TasksCategory
-		findErr := engine.Table("tasks").Join("LEFT", "category", "category.id = tasks.category_id").
+		findErr := db.Table("tasks").Join("LEFT", "category", "category.id = tasks.category_id").
 			Find(&tasks)
 		if findErr != nil {
 			fmt.Println(findErr)
@@ -93,7 +97,7 @@ func main() {
 		id := c.Param("id")
 
 		var valuesMap = make(map[string]string)
-		has, getErr := engine.Table(&Tasks{}).Where("id = ?", id).Get(&valuesMap)
+		has, getErr := db.Table(&Tasks{}).Where("id = ?", id).Get(&valuesMap)
 		if !has {
 			fmt.Printf("task with id %s doesn`t exist\n", id)
 		}
@@ -105,7 +109,7 @@ func main() {
 			fmt.Println(parseErr)
 		}
 
-		_, updateErr := engine.UseBool("status").ID(id).Update(&Tasks{
+		_, updateErr := db.UseBool("status").ID(id).Update(&Tasks{
 			Status: !parseBool,
 		})
 
@@ -125,7 +129,7 @@ func main() {
 			fmt.Println(bindErr)
 		}
 
-		_, updateErr := engine.ID(id).Update(&Tasks{
+		_, updateErr := db.ID(id).Update(&Tasks{
 			Title:   newTask.Title,
 			Content: newTask.Content,
 		})
@@ -138,7 +142,7 @@ func main() {
 	router.DELETE("/task/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
-		_, deleteErr := engine.ID(id).Delete(&Tasks{})
+		_, deleteErr := db.ID(id).Delete(&Tasks{})
 
 		if deleteErr != nil {
 			fmt.Println(deleteErr)
@@ -154,7 +158,7 @@ func main() {
 			fmt.Println(bindErr)
 		}
 
-		_, insertErr := engine.Insert(&category)
+		_, insertErr := db.Insert(&category)
 		if insertErr != nil {
 			fmt.Println(insertErr)
 		}
@@ -167,7 +171,7 @@ func main() {
 	// Возвращает все категории
 	router.GET("/category", func(c *gin.Context) {
 		var categories []Category
-		findErr := engine.Find(&categories)
+		findErr := db.Find(&categories)
 		fmt.Println(categories)
 		if findErr != nil {
 			fmt.Println(findErr)
@@ -189,7 +193,7 @@ func main() {
 			fmt.Println(bindErr)
 		}
 
-		_, updateErr := engine.ID(id).Update(&Category{
+		_, updateErr := db.ID(id).Update(&Category{
 			Name: category.Name,
 		})
 
@@ -202,7 +206,7 @@ func main() {
 	router.DELETE("/category/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
-		_, deleteErr := engine.ID(id).Delete(&Category{})
+		_, deleteErr := db.ID(id).Delete(&Category{})
 
 		if deleteErr != nil {
 			fmt.Println(deleteErr)

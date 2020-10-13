@@ -1,0 +1,11 @@
+- id: 1
+  title: test_1
+  content: content_1
+  status: false
+  category_id: 1
+
+- id: 2
+  title: test_2
+  content: content_2
+  status: true
+  category_id: 2
