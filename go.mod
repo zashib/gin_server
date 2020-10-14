@@ -7,5 +7,6 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-testfixtures/testfixtures/v3 v3.4.0
 	github.com/lib/pq v1.8.0
+	github.com/stretchr/testify v1.5.1
 	xorm.io/xorm v1.0.4
 )
