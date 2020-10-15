@@ -26,6 +26,49 @@ func init() {
 	router = updateTask(testDb)
 }
 
+func TestToggleTask(t *testing.T) {
+	prepareTestDatabase()
+	// run server using httptest
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	// create httpexpect instance
+	e := httpexpect.New(t, server.URL)
+
+	getData(e, "Status", false)
+
+	e.PUT("/toggle_task/1").
+		Expect().
+		Status(http.StatusOK)
+
+	getData(e, "Status", true)
+}
+
+func TestUpdateTask(t *testing.T) {
+	prepareTestDatabase()
+	testTitle := map[string]interface{}{
+		"Title": "song",
+	}
+	// run server using httptest
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	// create httpexpect instance
+	e := httpexpect.New(t, server.URL)
+
+	getData(e, "Title", "test_1")
+
+	e.PUT("/task/1").WithJSON(testTitle).
+		Expect().
+		Status(http.StatusOK)
+
+	getData(e, "Title", "song")
+}
+
+func testConnectionString() string {
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "5435", "user", "test_db", "pwd")
+}
+
 func TestMain(m *testing.M) {
 	var err error
 
@@ -54,58 +97,9 @@ func prepareTestDatabase() {
 	}
 }
 
-func TestToggleTask(t *testing.T) {
-	prepareTestDatabase()
-	// run server using httptest
-	server := httptest.NewServer(router)
-	defer server.Close()
-
-	// create httpexpect instance
-	e := httpexpect.New(t, server.URL)
-
-	e.GET("/task").
+func getData(e *httpexpect.Expect, key string, value interface{}) *httpexpect.Object {
+	return e.GET("/task").
 		Expect().
 		Status(http.StatusOK).JSON().Object().Value("tasks").
-		Object().Value("1").Object().ValueEqual("Status", false)
-
-	e.PUT("/toggle_task/1").
-		Expect().
-		Status(http.StatusOK)
-
-	e.GET("/task").
-		Expect().
-		Status(http.StatusOK).JSON().Object().Value("tasks").
-		Object().Value("1").Object().ValueEqual("Status", true)
-
-}
-
-func TestUpdateTask(t *testing.T) {
-	prepareTestDatabase()
-	testTitle := map[string]interface{}{
-		"Title": "song",
-	}
-	// run server using httptest
-	server := httptest.NewServer(router)
-	defer server.Close()
-
-	// create httpexpect instance
-	e := httpexpect.New(t, server.URL)
-
-	e.GET("/task").
-		Expect().
-		Status(http.StatusOK).JSON().Object().Value("tasks").
-		Object().Value("1").Object().ValueEqual("Title", "test_1")
-
-	e.PUT("/task/1").WithJSON(testTitle).
-		Expect().
-		Status(http.StatusOK)
-
-	e.GET("/task").
-		Expect().
-		Status(http.StatusOK).JSON().Object().Value("tasks").
-		Object().Value("1").Object().ValueEqual("Title", "song")
-}
-
-func testConnectionString() string {
-	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "5435", "user", "test_db", "pwd")
+		Object().Value("1").Object().ValueEqual(key, value)
 }
