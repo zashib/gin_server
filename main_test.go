@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"github.com/gavv/httpexpect/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-testfixtures/testfixtures/v3"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,7 +19,7 @@ var (
 	router   = gin.New()
 )
 
-// Add handlers to router
+// Add handlers to test_docker_compose router
 func init() {
 	router = getTasks(testDb)
 	router = toggleTask(testDb)
@@ -33,17 +31,17 @@ func TestMain(m *testing.M) {
 
 	initDb, err = sql.Open("postgres", testConnectionString())
 	if err != nil {
-		fmt.Println("can not open test DB")
+		fmt.Println("can not open test_docker_compose DB")
 	}
 
 	fixtures, err = testfixtures.New(
 		testfixtures.Database(initDb),                 // You database connection
 		testfixtures.Dialect("postgres"),              // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
 		testfixtures.Directory("fixtures"),            // the directory containing the YAML files
-		testfixtures.DangerousSkipTestDatabaseCheck(), // will refuse to load fixtures if the database name (or database filename for SQLite) doesn't contains "test"
+		testfixtures.DangerousSkipTestDatabaseCheck(), // will refuse to load fixtures if the database name (or database filename for SQLite) doesn't contains "test_docker_compose"
 	)
 	if err != nil {
-		fmt.Println("can not create test Loader")
+		fmt.Println("can not create test_docker_compose Loader")
 	}
 
 	os.Exit(m.Run())
@@ -52,56 +50,60 @@ func TestMain(m *testing.M) {
 
 func prepareTestDatabase() {
 	if err := fixtures.Load(); err != nil {
-		fmt.Println("can not prepare test Database")
+		fmt.Println("can not prepare test_docker_compose Database")
 	}
 }
 
 func TestToggleTask(t *testing.T) {
 	prepareTestDatabase()
-	id := "1"
-	//tasks := make(map[int64]TasksCategory)
-	initResponse := httptest.NewRecorder()
+	// run server using httptest
+	server := httptest.NewServer(router)
+	defer server.Close()
 
-	req, _ := http.NewRequest("GET", "/task", nil)
-	router.ServeHTTP(initResponse, req)
-	assert.Equal(t, 200, initResponse.Code)
-	fmt.Println(initResponse.Body)
+	// create httpexpect instance
+	e := httpexpect.New(t, server.URL)
 
-	req, _ = http.NewRequest("PUT", "/toggle_task/"+id, nil)
-	router.ServeHTTP(initResponse, req)
-	assert.Equal(t, 200, initResponse.Code)
+	e.GET("/task").
+		Expect().
+		Status(http.StatusOK).JSON().Object().Value("tasks").
+		Object().Value("1").Object().ValueEqual("Status", false)
 
-	endResponse := httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/task", nil)
-	router.ServeHTTP(endResponse, req)
-	assert.Equal(t, 200, endResponse.Code)
-	fmt.Println(endResponse.Body)
-	//assert.Equal(t, true,  endResponse.Body)
+	e.PUT("/toggle_task/1").
+		Expect().
+		Status(http.StatusOK)
+
+	e.GET("/task").
+		Expect().
+		Status(http.StatusOK).JSON().Object().Value("tasks").
+		Object().Value("1").Object().ValueEqual("Status", true)
+
 }
 
 func TestUpdateTask(t *testing.T) {
 	prepareTestDatabase()
-	id := "1"
-	requestBody, _ := json.Marshal(map[string]string{
-		"title": "song",
-	})
+	testTitle := map[string]interface{}{
+		"Title": "song",
+	}
+	// run server using httptest
+	server := httptest.NewServer(router)
+	defer server.Close()
 
-	initResponse := httptest.NewRecorder()
+	// create httpexpect instance
+	e := httpexpect.New(t, server.URL)
 
-	req, _ := http.NewRequest("GET", "/task", nil)
-	router.ServeHTTP(initResponse, req)
-	assert.Equal(t, 200, initResponse.Code)
-	fmt.Println(initResponse.Body)
+	e.GET("/task").
+		Expect().
+		Status(http.StatusOK).JSON().Object().Value("tasks").
+		Object().Value("1").Object().ValueEqual("Title", "test_1")
 
-	req, _ = http.NewRequest("PUT", "/task/"+id, bytes.NewBuffer(requestBody))
-	router.ServeHTTP(initResponse, req)
-	assert.Equal(t, 200, initResponse.Code)
+	e.PUT("/task/1").WithJSON(testTitle).
+		Expect().
+		Status(http.StatusOK)
 
-	endResponse := httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/task", nil)
-	router.ServeHTTP(endResponse, req)
-	assert.Equal(t, 200, endResponse.Code)
-	fmt.Println(endResponse.Body)
+	e.GET("/task").
+		Expect().
+		Status(http.StatusOK).JSON().Object().Value("tasks").
+		Object().Value("1").Object().ValueEqual("Title", "song")
 }
 
 func testConnectionString() string {

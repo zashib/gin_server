@@ -45,88 +45,26 @@ var (
 
 func main() {
 	db := createDB(connectionString())
-	// Создаёт задачу
+
+	// Create task
 	postTask(db)
-	// Возвращает все задачи
+	// Get all tasks
 	getTasks(db)
-	// Переключает задачу невыполнено/выполнено
+	// Toggle task status done/undone
 	toggleTask(db)
-	// Меняет контент и название задачи
+	// Change title and content of task
 	updateTask(db)
-	// Удаляет задачу
-	r.DELETE("/task/:id", func(c *gin.Context) {
-		id := c.Param("id")
+	// Delete task
+	deleteTask(db)
 
-		_, deleteErr := db.ID(id).Delete(&Tasks{})
-
-		if deleteErr != nil {
-			fmt.Println(deleteErr)
-		}
-	})
-
-	// Создаёт категорию(странное поведение при добавлении нового значения)
-	r.POST("/category", func(c *gin.Context) {
-		var category Category
-
-		bindErr := c.BindJSON(&category)
-		if bindErr != nil {
-			fmt.Println(bindErr)
-		}
-
-		_, insertErr := db.Insert(&category)
-		if insertErr != nil {
-			fmt.Println(insertErr)
-		}
-
-		c.JSON(200, gin.H{
-			"id":   category.Id,
-			"name": category.Name,
-		})
-	})
-	// Возвращает все категории
-	r.GET("/category", func(c *gin.Context) {
-		var categories []Category
-		findErr := db.Find(&categories)
-		fmt.Println(categories)
-		if findErr != nil {
-			fmt.Println(findErr)
-		}
-
-		c.JSON(200, gin.H{
-			"categories": categories,
-		})
-	})
-
-	// Меняет имя категории
-	r.PUT("/category/:id", func(c *gin.Context) {
-		id := c.Param("id")
-
-		var category Category
-
-		bindErr := c.BindJSON(&category)
-		if bindErr != nil {
-			fmt.Println(bindErr)
-		}
-
-		_, updateErr := db.ID(id).Update(&Category{
-			Name: category.Name,
-		})
-
-		if updateErr != nil {
-			fmt.Println(updateErr)
-		}
-	})
-
-	// Удаляет категорию
-	r.DELETE("/category/:id", func(c *gin.Context) {
-		id := c.Param("id")
-
-		_, deleteErr := db.ID(id).Delete(&Category{})
-
-		if deleteErr != nil {
-			fmt.Println(deleteErr)
-		}
-	})
+	// Create category
+	createCategory(db)
+	// Get All categories
+	getCategories(db)
+	// Change category name
+	renameCategory(db)
+	// Delete category
+	deleteCategory(db)
 
 	runErr := r.Run()
 	if runErr != nil {
@@ -236,6 +174,92 @@ func updateTask(db *xorm.Engine) *gin.Engine {
 
 		if updateErr != nil {
 			fmt.Println(updateErr)
+		}
+	})
+	return r
+}
+
+func deleteTask(db *xorm.Engine) *gin.Engine {
+	r.DELETE("/task/:id", func(c *gin.Context) {
+		id := c.Param("id")
+
+		_, deleteErr := db.ID(id).Delete(&Tasks{})
+
+		if deleteErr != nil {
+			fmt.Println(deleteErr)
+		}
+	})
+	return r
+}
+
+func createCategory(db *xorm.Engine) *gin.Engine {
+	r.POST("/category", func(c *gin.Context) {
+		var category Category
+
+		bindErr := c.BindJSON(&category)
+		if bindErr != nil {
+			fmt.Println(bindErr)
+		}
+
+		_, insertErr := db.Insert(&category)
+		if insertErr != nil {
+			fmt.Println(insertErr)
+		}
+
+		c.JSON(200, gin.H{
+			"id":   category.Id,
+			"name": category.Name,
+		})
+	})
+	return r
+}
+
+func getCategories(db *xorm.Engine) *gin.Engine {
+	r.GET("/category", func(c *gin.Context) {
+		var categories []Category
+		findErr := db.Find(&categories)
+		fmt.Println(categories)
+		if findErr != nil {
+			fmt.Println(findErr)
+		}
+
+		c.JSON(200, gin.H{
+			"categories": categories,
+		})
+	})
+	return r
+}
+
+func renameCategory(db *xorm.Engine) *gin.Engine {
+	r.PUT("/category/:id", func(c *gin.Context) {
+		id := c.Param("id")
+
+		var category Category
+
+		bindErr := c.BindJSON(&category)
+		if bindErr != nil {
+			fmt.Println(bindErr)
+		}
+
+		_, updateErr := db.ID(id).Update(&Category{
+			Name: category.Name,
+		})
+
+		if updateErr != nil {
+			fmt.Println(updateErr)
+		}
+	})
+	return r
+}
+
+func deleteCategory(db *xorm.Engine) *gin.Engine {
+	r.DELETE("/category/:id", func(c *gin.Context) {
+		id := c.Param("id")
+
+		_, deleteErr := db.ID(id).Delete(&Category{})
+
+		if deleteErr != nil {
+			fmt.Println(deleteErr)
 		}
 	})
 	return r
