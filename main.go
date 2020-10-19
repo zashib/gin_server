@@ -2,40 +2,40 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"strconv"
 	"xorm.io/xorm"
 )
 
 type Tasks struct {
-	Id         int64
+	ID         int64
 	Title      string `xorm:"notnull unique"`
 	Content    string
 	Status     bool  `xorm:"notnull"`
-	CategoryId int64 `xorm:"'category_id' index"`
+	CategoryID int64 `xorm:"'category_id' index"`
 }
 
 type Category struct {
-	Id   int64
+	ID   int64
 	Name string `xorm:"unique"`
 }
 
 type TasksCategory struct {
-	Id      int64
+	ID      int64
 	Title   string
 	Content string
 	Status  bool
 	Name    string
 }
 
-var (
-	r = gin.New()
-)
+var r = gin.New()
 
 // TODO:
 
-// Initialize xorm initDb and put in context
+// Initialize xorm initDB and put in context
 // Implement all methods for notes/tasks and categories
 // Write api tests
 
@@ -73,7 +73,8 @@ func main() {
 }
 
 func connectionString() string {
-	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", "localhost", "5434", "user", "example", "pwd")
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		"localhost", "5434", "user", "example", "pwd")
 }
 
 func createDB(connection string) *xorm.Engine {
@@ -86,6 +87,7 @@ func createDB(connection string) *xorm.Engine {
 	if syncErr != nil {
 		fmt.Println(syncErr)
 	}
+
 	return db
 }
 
@@ -103,13 +105,14 @@ func postTask(db *xorm.Engine) *gin.Engine {
 			fmt.Println(insertErr)
 		}
 
-		c.JSON(200, gin.H{
-			"id":      task.Id,
+		c.JSON(http.StatusOK, gin.H{
+			"id":      task.ID,
 			"title":   task.Title,
 			"content": task.Content,
 			"status":  task.Status,
 		})
 	})
+
 	return r
 }
 
@@ -121,10 +124,11 @@ func getTasks(db *xorm.Engine) *gin.Engine {
 		if findErr != nil {
 			fmt.Println(findErr)
 		}
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"tasks": tasks,
 		})
 	})
+
 	return r
 }
 
@@ -153,6 +157,7 @@ func toggleTask(db *xorm.Engine) *gin.Engine {
 			fmt.Println(updateErr)
 		}
 	})
+
 	return r
 }
 
@@ -176,6 +181,7 @@ func updateTask(db *xorm.Engine) *gin.Engine {
 			fmt.Println(updateErr)
 		}
 	})
+
 	return r
 }
 
@@ -189,6 +195,7 @@ func deleteTask(db *xorm.Engine) *gin.Engine {
 			fmt.Println(deleteErr)
 		}
 	})
+
 	return r
 }
 
@@ -206,11 +213,12 @@ func createCategory(db *xorm.Engine) *gin.Engine {
 			fmt.Println(insertErr)
 		}
 
-		c.JSON(200, gin.H{
-			"id":   category.Id,
+		c.JSON(http.StatusOK, gin.H{
+			"id":   category.ID,
 			"name": category.Name,
 		})
 	})
+
 	return r
 }
 
@@ -223,10 +231,11 @@ func getCategories(db *xorm.Engine) *gin.Engine {
 			fmt.Println(findErr)
 		}
 
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"categories": categories,
 		})
 	})
+
 	return r
 }
 
@@ -249,6 +258,7 @@ func renameCategory(db *xorm.Engine) *gin.Engine {
 			fmt.Println(updateErr)
 		}
 	})
+
 	return r
 }
 
@@ -262,5 +272,6 @@ func deleteCategory(db *xorm.Engine) *gin.Engine {
 			fmt.Println(deleteErr)
 		}
 	})
+
 	return r
 }
