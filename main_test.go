@@ -77,7 +77,7 @@ func TestMain(m *testing.M) {
 
 	initDB, err = sql.Open("postgres", testConnectionString())
 	if err != nil {
-		fmt.Println("can not open test_docker_compose DB")
+		fmt.Println("can not open test DB")
 	}
 
 	fixtures, err = testfixtures.New(
@@ -91,7 +91,7 @@ func TestMain(m *testing.M) {
 		testfixtures.DangerousSkipTestDatabaseCheck(),
 	)
 	if err != nil {
-		fmt.Println("can not create test_docker_compose Loader")
+		fmt.Println("can not create test Loader")
 	}
 
 	os.Exit(m.Run())
@@ -99,7 +99,7 @@ func TestMain(m *testing.M) {
 
 func prepareTestDatabase() {
 	if err := fixtures.Load(); err != nil {
-		fmt.Println("can not prepare test_docker_compose Database")
+		fmt.Println("can not prepare test Database")
 	}
 }
 
